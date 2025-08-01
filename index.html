@@ -1,0 +1,1287 @@
+import React, { useState, useEffect } from 'react';
+import { Calendar, CheckCircle, Clock, Users, BarChart3, Target, Brain, Zap, Eye, Plus, ChevronRight } from 'lucide-react';
+
+const DispositivosMentaisApp = () => {
+  const [viewMode, setViewMode] = useState('participante'); // 'participante' ou 'treinador'
+  const [currentUser, setCurrentUser] = useState('');
+  const [currentDay, setCurrentDay] = useState(1);
+  const [selectedTool, setSelectedTool] = useState('processa');
+  
+  // Estado para armazenar dados dos participantes
+  const [participantes, setParticipantes] = useState([]);
+  const [progressData, setProgressData] = useState({});
+
+  // Dados dos 21 dias estruturados
+  const programa21Dias = {
+    semana1: {
+      titulo: "PROCESSAMENTO INTELIGENTE",
+      dias: [
+        {
+          dia: 1,
+          titulo: "Instalação da Base - Dia 1",
+          tarefas: [
+            {
+              id: "s1d1t1",
+              titulo: "Primeira aplicação P.R.O.C.E.S.S.A.",
+              descricao: "Use o framework P.R.O.C.E.S.S.A. na primeira situação de múltiplas demandas do dia",
+              tipo: "execucao",
+              campo: "situacao_multiplas_demandas"
+            },
+            {
+              id: "s1d1t2", 
+              titulo: "Pausa de 5 segundos",
+              descricao: "Pratique pausar 5 segundos antes de reagir a uma 'urgência'",
+              tipo: "reflexao",
+              campo: "momento_pausa"
+            },
+            {
+              id: "s1d1t3",
+              titulo: "Lista de impacto",
+              descricao: "Liste 3 demandas do dia e ordene por impacto real",
+              tipo: "lista",
+              campo: "demandas_priorizadas"
+            }
+          ]
+        },
+        {
+          dia: 2,
+          titulo: "Instalação da Base - Dia 2",
+          tarefas: [
+            {
+              id: "s1d2t1",
+              titulo: "P.R.O.C.E.S.S.A. em nova situação",
+              descricao: "Aplique novamente o framework em situação diferente de sobrecarga",
+              tipo: "execucao",
+              campo: "segunda_aplicacao"
+            },
+            {
+              id: "s1d2t2",
+              titulo: "Contagem de pausas",
+              descricao: "Conte quantas vezes conseguiu pausar antes de reagir hoje",
+              tipo: "numero",
+              campo: "quantidade_pausas"
+            },
+            {
+              id: "s1d2t3",
+              titulo: "Reflexão do impacto",
+              descricao: "Qual foi a diferença de aplicar priorização consciente?",
+              tipo: "reflexao",
+              campo: "diferenca_observada"
+            }
+          ]
+        },
+        {
+          dia: 3,
+          titulo: "Instalação da Base - Dia 3",
+          tarefas: [
+            {
+              id: "s1d3t1",
+              titulo: "P.R.O.C.E.S.S.A. automático",
+              descricao: "Tente aplicar o framework sem consultar os passos",
+              tipo: "execucao",
+              campo: "aplicacao_automatica"
+            },
+            {
+              id: "s1d3t2",
+              titulo: "Pausa consciente",
+              descricao: "Identifique o momento mais difícil para pausar hoje",
+              tipo: "reflexao",
+              campo: "momento_dificil"
+            },
+            {
+              id: "s1d3t3",
+              titulo: "Comunicação de prazos",
+              descricao: "Comunique prazos realistas para 2 demandas aceitas",
+              tipo: "execucao",
+              campo: "prazos_comunicados"
+            }
+          ]
+        },
+        {
+          dia: 4,
+          titulo: "Refinamento - Dia 4",
+          tarefas: [
+            {
+              id: "s1d4t1",
+              titulo: "P.R.O.C.E.S.S.A. em sobrecarga",
+              descricao: "Aplique em TODA situação de sobrecarga que aparecer",
+              tipo: "execucao",
+              campo: "todas_sobrecargas"
+            },
+            {
+              id: "s1d4t2",
+              titulo: "Reflexo de pausa",
+              descricao: "A pausa está virando automática? Onde ainda trava?",
+              tipo: "reflexao",
+              campo: "automatizacao_pausa"
+            },
+            {
+              id: "s1d4t3",
+              titulo: "Pergunta-chave diária",
+              descricao: "Use 'Se só pudesse fazer UMA coisa hoje, seria qual?' 3 vezes",
+              tipo: "execucao",
+              campo: "pergunta_chave_aplicada"
+            }
+          ]
+        },
+        {
+          dia: 5,
+          titulo: "Refinamento - Dia 5",
+          tarefas: [
+            {
+              id: "s1d5t1",
+              titulo: "Matriz de 30 segundos",
+              descricao: "Aplique a matriz Urgente/Importante em 30 segundos numa situação real",
+              tipo: "execucao",
+              campo: "matriz_aplicada"
+            },
+            {
+              id: "s1d5t2",
+              titulo: "Contagem total de pausas",
+              descricao: "Quantas pausas conscientes conseguiu fazer hoje?",
+              tipo: "numero",
+              campo: "total_pausas_dia5"
+            },
+            {
+              id: "s1d5t3",
+              titulo: "Comparação com dia 1",
+              descricao: "Como sua gestão de prioridades mudou desde o dia 1?",
+              tipo: "reflexao",
+              campo: "evolucao_priorizacao"
+            }
+          ]
+        },
+        {
+          dia: 6,
+          titulo: "Refinamento - Dia 6",
+          tarefas: [
+            {
+              id: "s1d6t1",
+              titulo: "P.R.O.C.E.S.S.A. fluido",
+              descricao: "Execute o framework de forma natural, sem forçar",
+              tipo: "execucao",
+              campo: "execucao_natural"
+            },
+            {
+              id: "s1d6t2",
+              titulo: "Impacto na produtividade",
+              descricao: "Observe: você está terminando mais tarefas importantes?",
+              tipo: "reflexao",
+              campo: "impacto_produtividade"
+            },
+            {
+              id: "s1d6t3",
+              titulo: "Comunicação proativa",
+              descricao: "Comunique status de 3 demandas antes que perguntem",
+              tipo: "execucao",
+              campo: "comunicacao_proativa"
+            }
+          ]
+        },
+        {
+          dia: 7,
+          titulo: "Consolidação - Dia 7",
+          tarefas: [
+            {
+              id: "s1d7t1",
+              titulo: "Autoavaliação semanal",
+              descricao: "O P.R.O.C.E.S.S.A. está virando reflexo automático?",
+              tipo: "reflexao",
+              campo: "autoavaliacao_processa"
+            },
+            {
+              id: "s1d7t2",
+              titulo: "Maior conquista",
+              descricao: "Qual foi sua maior conquista na gestão de prioridades esta semana?",
+              tipo: "reflexao",
+              campo: "maior_conquista_s1"
+            },
+            {
+              id: "s1d7t3",
+              titulo: "Preparação semana 2",
+              descricao: "Que situação travada você vai destrancar na próxima semana?",
+              tipo: "planejamento",
+              campo: "preparacao_s2"
+            }
+          ]
+        }
+      ]
+    },
+    semana2: {
+      titulo: "EXECUÇÃO SEM PARALISIA",
+      dias: [
+        {
+          dia: 8,
+          titulo: "Destravamento Ativo - Dia 8",
+          tarefas: [
+            {
+              id: "s2d8t1",
+              titulo: "Identifique 3 tarefas travadas",
+              descricao: "Liste 3 tarefas paradas há mais de uma semana",
+              tipo: "lista",
+              campo: "tarefas_travadas_listadas"
+            },
+            {
+              id: "s2d8t2",
+              titulo: "A.V.A.N.Ç.A. na tarefa 1",
+              descricao: "Aplique o framework A.V.A.N.Ç.A. na primeira tarefa travada",
+              tipo: "execucao",
+              campo: "avanca_tarefa1"
+            },
+            {
+              id: "s2d8t3",
+              titulo: "Primeira versão entregue",
+              descricao: "Entregue primeira versão de algo, mesmo imperfeita",
+              tipo: "execucao",
+              campo: "primeira_versao_dia8"
+            }
+          ]
+        },
+        {
+          dia: 9,
+          titulo: "Destravamento Ativo - Dia 9",
+          tarefas: [
+            {
+              id: "s2d9t1",
+              titulo: "A.V.A.N.Ç.A. na tarefa 2",
+              descricao: "Aplique o framework na segunda tarefa travada",
+              tipo: "execucao",
+              campo: "avanca_tarefa2"
+            },
+            {
+              id: "s2d9t2",
+              titulo: "Regra dos 70%",
+              descricao: "Tome uma decisão com apenas 70% das informações",
+              tipo: "execucao",
+              campo: "decisao_70_porcento"
+            },
+            {
+              id: "s2d9t3",
+              titulo: "Pergunta destravante",
+              descricao: "Quando travar, pergunte: 'O que posso fazer AGORA com o que tenho?'",
+              tipo: "execucao",
+              campo: "pergunta_destravante_aplicada"
+            }
+          ]
+        },
+        {
+          dia: 10,
+          titulo: "Destravamento Ativo - Dia 10",
+          tarefas: [
+            {
+              id: "s2d10t1",
+              titulo: "A.V.A.N.Ç.A. na tarefa 3",
+              descricao: "Aplique o framework na terceira tarefa travada",
+              tipo: "execucao",
+              campo: "avanca_tarefa3"
+            },
+            {
+              id: "s2d10t2",
+              titulo: "Versão utilizável diária",
+              descricao: "Crie uma versão utilizável de algum trabalho em andamento",
+              tipo: "execucao",
+              campo: "versao_utilizavel_dia10"
+            },
+            {
+              id: "s2d10t3",
+              titulo: "Balanço do destravamento",
+              descricao: "Quantas tarefas você conseguiu destravar em 3 dias?",
+              tipo: "numero",
+              campo: "tarefas_destravadas_total"
+            }
+          ]
+        },
+        {
+          dia: 11,
+          titulo: "Mentalidade de Progresso - Dia 11",
+          tarefas: [
+            {
+              id: "s2d11t1",
+              titulo: "Primeira versão ao invés de perfeita",
+              descricao: "Em 2 situações, escolha primeira versão ao invés de versão perfeita",
+              tipo: "execucao",
+              campo: "primeira_vs_perfeita"
+            },
+            {
+              id: "s2d11t2",
+              titulo: "Treino dos 25 minutos",
+              descricao: "Trabalhe 25 minutos numa tarefa que estava adiando",
+              tipo: "execucao",
+              campo: "treino_25_minutos"
+            },
+            {
+              id: "s2d11t3",
+              titulo: "Comunicação de gaps",
+              descricao: "Comunique claramente que informações estão faltando numa entrega",
+              tipo: "execucao",
+              campo: "comunicacao_gaps"
+            }
+          ]
+        },
+        {
+          dia: 12,
+          titulo: "Mentalidade de Progresso - Dia 12",
+          tarefas: [
+            {
+              id: "s2d12t1",
+              titulo: "Iteração consciente",
+              descricao: "Entregue algo, receba feedback, melhore - em ciclo consciente",
+              tipo: "execucao",
+              campo: "iteracao_consciente"
+            },
+            {
+              id: "s2d12t2",
+              titulo: "A.V.A.N.Ç.A. automático",
+              descricao: "Use o framework sem consultar os passos",
+              tipo: "execucao",
+              campo: "avanca_automatico"
+            },
+            {
+              id: "s2d12t3",
+              titulo: "Número de decisões tomadas",
+              descricao: "Quantas decisões você tomou hoje sem procurar mais informações?",
+              tipo: "numero",
+              campo: "decisoes_tomadas_dia12"
+            }
+          ]
+        },
+        {
+          dia: 13,
+          titulo: "Mentalidade de Progresso - Dia 13",
+          tarefas: [
+            {
+              id: "s2d13t1",
+              titulo: "Progresso sobre perfeição",
+              descricao: "Identifique 1 situação onde priorizou progresso sobre perfeição",
+              tipo: "reflexao",
+              campo: "progresso_sobre_perfeicao"
+            },
+            {
+              id: "s2d13t2",
+              titulo: "Adaptação rápida",
+              descricao: "Adapte rapidamente quando algo mudar no meio de uma tarefa",
+              tipo: "execucao",
+              campo: "adaptacao_rapida"
+            },
+            {
+              id: "s2d13t3",
+              titulo: "Entrega com ressalvas",
+              descricao: "Entregue algo útil marcando claramente as limitações",
+              tipo: "execucao",
+              campo: "entrega_com_ressalvas"
+            }
+          ]
+        },
+        {
+          dia: 14,
+          titulo: "Consolidação - Dia 14",
+          tarefas: [
+            {
+              id: "s2d14t1",
+              titulo: "Autoavaliação A.V.A.N.Ç.A.",
+              descricao: "O framework está ajudando a destravar suas execuções?",
+              tipo: "reflexao",
+              campo: "autoavaliacao_avanca"
+            },
+            {
+              id: "s2d14t2",
+              titulo: "Maior destravamento",
+              descricao: "Qual foi o maior destravamento que conseguiu esta semana?",
+              tipo: "reflexao",
+              campo: "maior_destravamento_s2"
+            },
+            {
+              id: "s2d14t3",
+              titulo: "Preparação semana 3",
+              descricao: "Que padrão operacional você vai observar na próxima semana?",
+              tipo: "planejamento",
+              campo: "preparacao_s3"
+            }
+          ]
+        }
+      ]
+    },
+    semana3: {
+      titulo: "LEITURA DE CONTEXTO",
+      dias: [
+        {
+          dia: 15,
+          titulo: "Observação Ativa - Dia 15",
+          tarefas: [
+            {
+              id: "s3d15t1",
+              titulo: "C.O.N.T.E.X.T.O. primeira aplicação",
+              descricao: "Use o framework para observar um padrão na sua operação",
+              tipo: "execucao",
+              campo: "contexto_primeira_aplicacao"
+            },
+            {
+              id: "s3d15t2",
+              titulo: "Documentação de padrão",
+              descricao: "Documente 1 padrão interessante que observou hoje",
+              tipo: "observacao",
+              campo: "padrao_documentado_dia15"
+            },
+            {
+              id: "s3d15t3",
+              titulo: "Conexão tarefa-impacto",
+              descricao: "Conecte uma tarefa que fez com o impacto maior que ela gera",
+              tipo: "reflexao",
+              campo: "conexao_tarefa_impacto"
+            }
+          ]
+        },
+        {
+          dia: 16,
+          titulo: "Observação Ativa - Dia 16",
+          tarefas: [
+            {
+              id: "s3d16t1",
+              titulo: "Pergunta contextual",
+              descricao: "Para cada tarefa concluída, pergunte: 'Por que isso importa?'",
+              tipo: "execucao",
+              campo: "pergunta_contextual_aplicada"
+            },
+            {
+              id: "s3d16t2",
+              titulo: "Padrão do dia",
+              descricao: "Documente outro padrão que se repete na operação",
+              tipo: "observacao",
+              campo: "padrao_documentado_dia16"
+            },
+            {
+              id: "s3d16t3",
+              titulo: "Implicações do padrão",
+              descricao: "Reflita sobre as implicações do padrão que observou",
+              tipo: "reflexao",
+              campo: "implicacoes_padrao"
+            }
+          ]
+        },
+        {
+          dia: 17,
+          titulo: "Observação Ativa - Dia 17",
+          tarefas: [
+            {
+              id: "s3d17t1",
+              titulo: "C.O.N.T.E.X.T.O. fluido",
+              descricao: "Aplique o framework naturalmente durante o dia",
+              tipo: "execucao",
+              campo: "contexto_fluido"
+            },
+            {
+              id: "s3d17t2",
+              titulo: "Terceiro padrão",
+              descricao: "Identifique um terceiro padrão diferente dos anteriores",
+              tipo: "observacao",
+              campo: "terceiro_padrao"
+            },
+            {
+              id: "s3d17t3",
+              titulo: "Visão sistêmica",
+              descricao: "Como os padrões observados se conectam entre si?",
+              tipo: "reflexao",
+              campo: "visao_sistemica"
+            }
+          ]
+        },
+        {
+          dia: 18,
+          titulo: "Contribuição Contextual - Dia 18",
+          tarefas: [
+            {
+              id: "s3d18t1",
+              titulo: "Primeira sugestão",
+              descricao: "Faça 1 sugestão de melhoria baseada no que observou",
+              tipo: "execucao",
+              campo: "primeira_sugestao"
+            },
+            {
+              id: "s3d18t2",
+              titulo: "Comunicação de insight",
+              descricao: "Comunique um insight útil que pode ajudar a equipe",
+              tipo: "execucao",
+              campo: "insight_comunicado"
+            },
+            {
+              id: "s3d18t3",
+              titulo: "Antecipação de problema",
+              descricao: "Antecipe um problema baseado nos padrões observados",
+              tipo: "execucao",
+              campo: "problema_antecipado"
+            }
+          ]
+        },
+        {
+          dia: 19,
+          titulo: "Contribuição Contextual - Dia 19",
+          tarefas: [
+            {
+              id: "s3d19t1",
+              titulo: "Execução contextual",
+              descricao: "Execute uma tarefa conectando com o propósito maior",
+              tipo: "execucao",
+              campo: "execucao_contextual"
+            },
+            {
+              id: "s3d19t2",
+              titulo: "Segunda sugestão",
+              descricao: "Faça uma segunda sugestão baseada em observação diferente",
+              tipo: "execucao",
+              campo: "segunda_sugestao"
+            },
+            {
+              id: "s3d19t3",
+              titulo: "Feedback da equipe",
+              descricao: "Como a equipe reagiu às suas observações e sugestões?",
+              tipo: "reflexao",
+              campo: "feedback_equipe"
+            }
+          ]
+        },
+        {
+          dia: 20,
+          titulo: "Contribuição Contextual - Dia 20",
+          tarefas: [
+            {
+              id: "s3d20t1",
+              titulo: "C.O.N.T.E.X.T.O. avançado",
+              descricao: "Use o framework para uma situação mais complexa",
+              tipo: "execucao",
+              campo: "contexto_avancado"
+            },
+            {
+              id: "s3d20t2",
+              titulo: "Melhoria implementada",
+              descricao: "Implemente uma pequena melhoria baseada em suas observações",
+              tipo: "execucao",
+              campo: "melhoria_implementada"
+            },
+            {
+              id: "s3d20t3",
+              titulo: "Mudança de visão",
+              descricao: "Como sua visão do trabalho mudou desde o dia 15?",
+              tipo: "reflexao",
+              campo: "mudanca_visao"
+            }
+          ]
+        },
+        {
+          dia: 21,
+          titulo: "Integração Final - Dia 21",
+          tarefas: [
+            {
+              id: "s3d21t1",
+              titulo: "3 dispositivos integrados",
+              descricao: "Use P.R.O.C.E.S.S.A. + A.V.A.N.Ç.A. + C.O.N.T.E.X.T.O. numa situação",
+              tipo: "execucao",
+              campo: "integracao_3_dispositivos"
+            },
+            {
+              id: "s3d21t2",
+              titulo: "Autoavaliação final",
+              descricao: "Qual dos 3 dispositivos está mais ativo? Qual precisa de mais treino?",
+              tipo: "reflexao",
+              campo: "autoavaliacao_final"
+            },
+            {
+              id: "s3d21t3",
+              titulo: "Resultado alcançado",
+              descricao: "Que resultado diferente você está contando hoje vs. dia 1?",
+              tipo: "reflexao",
+              campo: "resultado_alcancado"
+            }
+          ]
+        }
+      ]
+    }
+  };
+
+  // Estado para armazenar respostas dos participantes
+  const [respostas, setRespostas] = useState({});
+
+  // Função para obter tarefa atual
+  const getTarefaAtual = () => {
+    let semanaAtual, diaAtual;
+    if (currentDay <= 7) {
+      semanaAtual = programa21Dias.semana1;
+      diaAtual = semanaAtual.dias[currentDay - 1];
+    } else if (currentDay <= 14) {
+      semanaAtual = programa21Dias.semana2;
+      diaAtual = semanaAtual.dias[currentDay - 8];
+    } else {
+      semanaAtual = programa21Dias.semana3;
+      diaAtual = semanaAtual.dias[currentDay - 15];
+    }
+    return { semanaAtual, diaAtual };
+  };
+
+  // Função para salvar resposta
+  const salvarResposta = (tarefaId, valor) => {
+    const chave = `${currentUser}_${tarefaId}`;
+    setRespostas(prev => ({
+      ...prev,
+      [chave]: {
+        valor,
+        timestamp: new Date().toISOString(),
+        dia: currentDay,
+        usuario: currentUser
+      }
+    }));
+  };
+
+  // Componente de entrada baseado no tipo de tarefa
+  const CampoResposta = ({ tarefa }) => {
+    const chave = `${currentUser}_${tarefa.id}`;
+    const respostaAtual = respostas[chave]?.valor || '';
+
+    const handleChange = (valor) => {
+      salvarResposta(tarefa.id, valor);
+    };
+
+    switch (tarefa.tipo) {
+      case 'execucao':
+      case 'reflexao':
+      case 'planejamento':
+      case 'observacao':
+        return (
+          <textarea
+            className="w-full p-3 border rounded-lg h-24 text-sm"
+            placeholder="Descreva sua experiência..."
+            value={respostaAtual}
+            onChange={(e) => handleChange(e.target.value)}
+          />
+        );
+      case 'numero':
+        return (
+          <input
+            type="number"
+            className="w-full p-3 border rounded-lg text-sm"
+            placeholder="Digite o número..."
+            value={respostaAtual}
+            onChange={(e) => handleChange(e.target.value)}
+          />
+        );
+      case 'lista':
+        return (
+          <textarea
+            className="w-full p-3 border rounded-lg h-32 text-sm"
+            placeholder="Liste os itens (um por linha)..."
+            value={respostaAtual}
+            onChange={(e) => handleChange(e.target.value)}
+          />
+        );
+      default:
+        return (
+          <input
+            type="text"
+            className="w-full p-3 border rounded-lg text-sm"
+            placeholder="Sua resposta..."
+            value={respostaAtual}
+            onChange={(e) => handleChange(e.target.value)}
+          />
+        );
+    }
+  };
+
+  // Dashboard do Treinador
+  const DashboardTreinador = () => {
+    const participantesCadastrados = [...new Set(Object.values(respostas).map(r => r.usuario))];
+    
+    const getProgressoParticipante = (nomeParticipante) => {
+      const respostasParticipante = Object.values(respostas).filter(r => r.usuario === nomeParticipante);
+      const totalTarefas = 21 * 3; // 21 dias x 3 tarefas por dia
+      return {
+        total: respostasParticipante.length,
+        porcentagem: ((respostasParticipante.length / totalTarefas) * 100).toFixed(1),
+        ultimaAtividade: respostasParticipante.length > 0 ? 
+          Math.max(...respostasParticipante.map(r => r.dia)) : 0
+      };
+    };
+
+    const getStatusDia = (participante, dia) => {
+      const tarefasDia = [];
+      let semana, diaIndex;
+      
+      if (dia <= 7) {
+        semana = programa21Dias.semana1;
+        diaIndex = dia - 1;
+      } else if (dia <= 14) {
+        semana = programa21Dias.semana2;
+        diaIndex = dia - 8;
+      } else {
+        semana = programa21Dias.semana3;
+        diaIndex = dia - 15;
+      }
+      
+      const diaData = semana.dias[diaIndex];
+      if (!diaData) return 'não-iniciado';
+      
+      const tarefasCompletas = diaData.tarefas.filter(tarefa => {
+        const chave = `${participante}_${tarefa.id}`;
+        return respostas[chave] && respostas[chave].valor.trim() !== '';
+      }).length;
+      
+      if (tarefasCompletas === 3) return 'completo';
+      if (tarefasCompletas > 0) return 'parcial';
+      return 'não-iniciado';
+    };
+
+    return (
+      <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Dashboard do Treinador</h1>
+          <p className="text-gray-600">Acompanhe o progresso em tempo real dos 3 Dispositivos Mentais</p>
+        </div>
+
+        {/* Estatísticas Gerais */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white p-4 rounded-lg shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Participantes Ativos</p>
+                <p className="text-2xl font-bold text-blue-600">{participantesCadastrados.length}</p>
+              </div>
+              <Users className="w-8 h-8 text-blue-500" />
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Respostas Totais</p>
+                <p className="text-2xl font-bold text-green-600">{Object.keys(respostas).length}</p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-green-500" />
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Taxa de Completude</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {participantesCadastrados.length > 0 ? 
+                    (participantesCadastrados.reduce((acc, p) => acc + parseFloat(getProgressoParticipante(p).porcentagem), 0) / participantesCadastrados.length).toFixed(1) : 0}%
+                </p>
+              </div>
+              <BarChart3 className="w-8 h-8 text-purple-500" />
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Dia Médio</p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {participantesCadastrados.length > 0 ? 
+                    Math.round(participantesCadastrados.reduce((acc, p) => acc + getProgressoParticipante(p).ultimaAtividade, 0) / participantesCadastrados.length) : 0}
+                </p>
+              </div>
+              <Calendar className="w-8 h-8 text-orange-500" />
+            </div>
+          </div>
+        </div>
+
+        {/* Lista de Participantes */}
+        <div className="bg-white rounded-lg shadow mb-6">
+          <div className="p-4 border-b">
+            <h2 className="text-lg font-semibold text-gray-800">Progresso Individual</h2>
+          </div>
+          <div className="p-4">
+            {participantesCadastrados.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">Nenhum participante cadastrado ainda</p>
+            ) : (
+              <div className="space-y-4">
+                {participantesCadastrados.map(participante => {
+                  const progresso = getProgressoParticipante(participante);
+                  return (
+                    <div key={participante} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="font-medium text-gray-800">{participante}</h3>
+                        <span className="text-sm text-gray-600">
+                          {progresso.total}/63 tarefas ({progresso.porcentagem}%)
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                        <div 
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                          style={{ width: `${progresso.porcentagem}%` }}
+                        ></div>
+                      </div>
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>Último dia ativo: {progresso.ultimaAtividade}</span>
+                        <span>
+                          Status: {progresso.ultimaAtividade === 21 ? '✅ Completo' : 
+                                  progresso.ultimaAtividade > 0 ? '🔄 Em andamento' : '⏳ Não iniciado'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mapa de Calor - Atividade por Dia */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-4 border-b">
+            <h2 className="text-lg font-semibold text-gray-800">Mapa de Atividade - 21 Dias</h2>
+          </div>
+          <div className="p-4">
+            {participantesCadastrados.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">Aguardando participantes...</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr>
+                      <th className="text-left p-2 font-medium text-gray-700">Participante</th>
+                      {Array.from({length: 21}, (_, i) => (
+                        <th key={i} className="text-center p-1 font-medium text-gray-700 min-w-8">
+                          {i + 1}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {participantesCadastrados.map(participante => (
+                      <tr key={participante} className="border-t">
+                        <td className="p-2 font-medium text-gray-800">{participante}</td>
+                        {Array.from({length: 21}, (_, dia) => {
+                          const status = getStatusDia(participante, dia + 1);
+                          let bgColor = 'bg-gray-100';
+                          let title = 'Não iniciado';
+                          
+                          if (status === 'completo') {
+                            bgColor = 'bg-green-500';
+                            title = 'Completo (3/3)';
+                          } else if (status === 'parcial') {
+                            bgColor = 'bg-yellow-400';
+                            title = 'Parcial';
+                          }
+                          
+                          return (
+                            <td key={dia} className="p-1 text-center">
+                              <div 
+                                className={`w-6 h-6 rounded mx-auto ${bgColor} cursor-pointer transition-all hover:scale-110`}
+                                title={title}
+                              ></div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Componente principal do participante
+  const PlataformaParticipante = () => {
+    const { semanaAtual, diaAtual } = getTarefaAtual();
+    
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-4xl mx-auto px-4 py-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800">3 Dispositivos Mentais</h1>
+                <p className="text-gray-600">Programa de 21 dias - {semanaAtual.titulo}</p>
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-gray-600">Olá, {currentUser}</div>
+                <div className="font-medium text-blue-600">Dia {currentDay}/21</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Navegação de ferramentas */}
+        <div className="bg-white border-b">
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="flex space-x-8">
+              <button
+                onClick={() => setSelectedTool('processa')}
+                className={`py-3 px-4 border-b-2 font-medium text-sm transition-colors ${
+                  selectedTool === 'processa' 
+                    ? 'border-blue-500 text-blue-600' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <Brain className="w-4 h-4" />
+                  <span>P.R.O.C.E.S.S.A.</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setSelectedTool('avanca')}
+                className={`py-3 px-4 border-b-2 font-medium text-sm transition-colors ${
+                  selectedTool === 'avanca' 
+                    ? 'border-green-500 text-green-600' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <Zap className="w-4 h-4" />
+                  <span>A.V.A.N.Ç.A.</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setSelectedTool('contexto')}
+                className={`py-3 px-4 border-b-2 font-medium text-sm transition-colors ${
+                  selectedTool === 'contexto' 
+                    ? 'border-purple-500 text-purple-600' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <Eye className="w-4 h-4" />
+                  <span>C.O.N.T.E.X.T.O.</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Conteúdo principal */}
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          {/* Card do dia atual */}
+          <div className="bg-white rounded-lg shadow-sm border mb-6">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800">{diaAtual.titulo}</h2>
+                  <p className="text-gray-600">Dia {currentDay} de 21</p>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => setCurrentDay(Math.max(1, currentDay - 1))}
+                    disabled={currentDay === 1}
+                    className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={() => setCurrentDay(Math.min(21, currentDay + 1))}
+                    disabled={currentDay === 21}
+                    className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-500" 
+                  style={{ width: `${(currentDay / 21) * 100}%` }}
+                ></div>
+              </div>
+
+              {/* Tarefas do dia */}
+              <div className="space-y-6">
+                {diaAtual.tarefas.map((tarefa, index) => {
+                  const chave = `${currentUser}_${tarefa.id}`;
+                  const foiRespondida = respostas[chave] && respostas[chave].valor.trim() !== '';
+                  
+                  return (
+                    <div key={tarefa.id} className="border rounded-lg p-4">
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 mt-1">
+                          {foiRespondida ? (
+                            <CheckCircle className="w-5 h-5 text-green-500" />
+                          ) : (
+                            <div className="w-5 h-5 border-2 border-gray-300 rounded-full"></div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-800 mb-2">{tarefa.titulo}</h3>
+                          <p className="text-gray-600 mb-3 text-sm">{tarefa.descricao}</p>
+                          <CampoResposta tarefa={tarefa} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Ferramentas de referência */}
+          <div className="bg-white rounded-lg shadow-sm border">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Framework de Referência: {selectedTool.toUpperCase()}
+              </h3>
+              
+              {selectedTool === 'processa' && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-blue-800 mb-2">P.R.O.C.E.S.S.A.</h4>
+                      <ul className="text-sm text-blue-700 space-y-1">
+                        <li><strong>P</strong> - Para (5 segundos de pausa mental)</li>
+                        <li><strong>R</strong> - Registra todas as demandas visualmente</li>
+                        <li><strong>O</strong> - Ordena por impacto/consequência</li>
+                        <li><strong>C</strong> - Concentra numa tarefa até concluir</li>
+                        <li><strong>E</strong> - Executa sem multitarefa</li>
+                        <li><strong>S</strong> - Sequencia a próxima</li>
+                        <li><strong>S</strong> - Sinaliza progresso aos envolvidos</li>
+                        <li><strong>A</strong> - Ajusta conforme novas demandas</li>
+                      </ul>
+                    </div>
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-blue-800 mb-2">Quando Usar</h4>
+                      <ul className="text-sm text-blue-700 space-y-1">
+                        <li>• Múltiplas demandas chegando ao mesmo tempo</li>
+                        <li>• Sensação de sobrecarga</li>
+                        <li>• Dificuldade para priorizar</li>
+                        <li>• Tentação de fazer multitarefa</li>
+                        <li>• Pressão para "resolver tudo agora"</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {selectedTool === 'avanca' && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-green-800 mb-2">A.V.A.N.Ç.A.</h4>
+                      <ul className="text-sm text-green-700 space-y-1">
+                        <li><strong>A</strong> - Avalia o que você tem vs. o que precisa</li>
+                        <li><strong>V</strong> - Versiona - cria primeira versão utilizável</li>
+                        <li><strong>A</strong> - Anuncia gaps e limitações claramente</li>
+                        <li><strong>N</strong> - Navega com feedback recebido</li>
+                        <li><strong>Ç</strong> - Çorrige (ajusta) baseado no aprendizado</li>
+                        <li><strong>A</strong> - Avança para próxima iteração</li>
+                      </ul>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-green-800 mb-2">Quando Usar</h4>
+                      <ul className="text-sm text-green-700 space-y-1">
+                        <li>• Informações incompletas</li>
+                        <li>• Diretrizes vagas</li>
+                        <li>• Medo de "errar"</li>
+                        <li>• Paralisia por perfeccionismo</li>
+                        <li>• Mudanças no meio do processo</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {selectedTool === 'contexto' && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-purple-800 mb-2">C.O.N.T.E.X.T.O.</h4>
+                      <ul className="text-sm text-purple-700 space-y-1">
+                        <li><strong>C</strong> - Captura padrões na execução diária</li>
+                        <li><strong>O</strong> - Observa conexões entre eventos</li>
+                        <li><strong>N</strong> - Nota tendências emergentes</li>
+                        <li><strong>T</strong> - Traduz observações em insights</li>
+                        <li><strong>E</strong> - Escala informação quando relevante</li>
+                        <li><strong>X</strong> - eXamina impactos possíveis</li>
+                        <li><strong>T</strong> - Timing certo para comunicar</li>
+                        <li><strong>O</strong> - Oferece alternativas ou soluções</li>
+                      </ul>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-purple-800 mb-2">Quando Usar</h4>
+                      <ul className="text-sm text-purple-700 space-y-1">
+                        <li>• Execução mecânica/automática</li>
+                        <li>• Padrões se repetindo</li>
+                        <li>• Oportunidades de melhoria</li>
+                        <li>• Necessidade de antecipar problemas</li>
+                        <li>• Conectar tarefas com propósito maior</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Tela de login/seleção
+  const TelaInicial = () => {
+    const [novoParticipante, setNovoParticipante] = useState('');
+    const [senhaTrainador, setSenhaTrainador] = useState('');
+    const [mostrarLoginTrainador, setMostrarLoginTrainador] = useState(false);
+    const [erroSenha, setErroSenha] = useState(false);
+    
+    // Senha do treinador (você pode mudar esta senha)
+    const SENHA_TREINADOR = "Treinador2025!";
+
+    const handleLoginParticipante = () => {
+      if (novoParticipante.trim()) {
+        setCurrentUser(novoParticipante.trim());
+        setViewMode('participante');
+      }
+    };
+
+    const handleLoginTrainador = () => {
+      if (senhaTrainador === SENHA_TREINADOR) {
+        setViewMode('treinador');
+        setErroSenha(false);
+      } else {
+        setErroSenha(true);
+        setSenhaTrainador('');
+      }
+    };
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="flex justify-center space-x-2 mb-4">
+              <Brain className="w-8 h-8 text-blue-500" />
+              <Zap className="w-8 h-8 text-green-500" />
+              <Eye className="w-8 h-8 text-purple-500" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">3 Dispositivos Mentais</h1>
+            <p className="text-gray-600">Programa de Desenvolvimento - 21 Dias</p>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Acesso do Participante
+              </label>
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  placeholder="Digite seu nome completo"
+                  className="flex-1 p-3 border rounded-lg text-sm"
+                  value={novoParticipante}
+                  onChange={(e) => setNovoParticipante(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleLoginParticipante()}
+                />
+                <button
+                  onClick={handleLoginParticipante}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Entrar
+                </button>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              {!mostrarLoginTrainador ? (
+                <button
+                  onClick={() => setMostrarLoginTrainador(true)}
+                  className="w-full p-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  <span>Acesso do Treinador</span>
+                </button>
+              ) : (
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Senha do Treinador
+                  </label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="password"
+                      placeholder="Digite a senha do treinador"
+                      className={`flex-1 p-3 border rounded-lg text-sm ${erroSenha ? 'border-red-500' : ''}`}
+                      value={senhaTrainador}
+                      onChange={(e) => {
+                        setSenhaTrainador(e.target.value);
+                        setErroSenha(false);
+                      }}
+                      onKeyPress={(e) => e.key === 'Enter' && handleLoginTrainador()}
+                    />
+                    <button
+                      onClick={handleLoginTrainador}
+                      className="px-4 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
+                    >
+                      Entrar
+                    </button>
+                  </div>
+                  {erroSenha && (
+                    <p className="text-red-500 text-sm">Senha incorreta. Tente novamente.</p>
+                  )}
+                  <button
+                    onClick={() => {
+                      setMostrarLoginTrainador(false);
+                      setSenhaTrainador('');
+                      setErroSenha(false);
+                    }}
+                    className="text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <h3 className="font-medium text-gray-800 mb-2">Como funciona:</h3>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• 21 dias de desenvolvimento estruturado</li>
+              <li>• 3 tarefas práticas por dia</li>
+              <li>• 3 ferramentas: PROCESSA, AVANÇA, CONTEXTO</li>
+              <li>• Acompanhamento em tempo real</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Renderização principal
+  if (viewMode === 'inicial') {
+    return <TelaInicial />;
+  } else if (viewMode === 'treinador') {
+    return (
+      <div>
+        <div className="bg-white border-b px-6 py-3 flex justify-between items-center">
+          <h1 className="text-xl font-bold text-gray-800">Dashboard do Treinador</h1>
+          <button
+            onClick={() => setViewMode('inicial')}
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+          >
+            Voltar
+          </button>
+        </div>
+        <DashboardTreinador />
+      </div>
+    );
+  } else {
+    return (
+      <div>
+        <PlataformaParticipante />
+        <div className="fixed bottom-4 right-4">
+          <button
+            onClick={() => {
+              setViewMode('inicial');
+              setCurrentUser('');
+            }}
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 shadow-lg"
+          >
+            Sair
+          </button>
+        </div>
+      </div>
+    );
+  }
+};
+
+export default DispositivosMentaisApp;
